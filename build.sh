@@ -131,6 +131,12 @@ copy_files() {
 
 # 配置函数
 config() {
+
+    echo "Get workable env..."
+    sudo apt update
+    sudo apt install u-boot-tools libssl-dev  bison flex -y
+
+
     echo "执行配置任务..."
     # 在这里添加配置相关的命令
     if [ "$init_status" = "y" ]; then
