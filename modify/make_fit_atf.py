@@ -9,6 +9,7 @@ usage: $0 <dt_name> [<dt_name> [<dt_name] ...]
 
 import os
 import sys
+print(sys.path)
 import getopt
 sys.path.append("/usr/lib/python3/dist-packages/elftools")
 # pip install pyelftools
@@ -105,7 +106,7 @@ def append_conf_section(file, cnt, dtname, atf_cnt):
     print >> file, '\t\t\tdescription = "Rockchip armv8 with ATF";'
     print >> file, '\t\t\trollback-index = <0x0>;'
     print >> file, '\t\t\tfirmware = "atf@1";'
-    print >> file, '\t\t\tloadables = "ub/usr/lib/python3/dist-packages/elftools/elfoot",',
+    print >> file, '\t\t\tloadables = "uboot",',
     for i in range(1, atf_cnt):
         print >> file, '"atf@%d"' % (i+1),
         if i != (atf_cnt - 1):
