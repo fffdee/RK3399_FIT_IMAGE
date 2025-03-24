@@ -58,13 +58,13 @@ check_toolchain_status() {
 # 下载并解压工具链
 download_and_extract_toolchain() {
     # 下载工具链
-    wget -P ./download https://armkeil.blob.core.windows.net/developer/Files/downloads/gnu/14.2.rel1/binrel/arm-gnu-toolchain-14.2.rel1-x86_64-aarch64-none-linux-gnu.tar.xz
+    wget -P ./download https://armkeil.blob.core.windows.net/developer/Files/downloads/gnu/12.2.rel1/binrel/arm-gnu-toolchain-12.2.rel1-x86_64-aarch64-none-linux-gnu.tar.xz
 
     # 解压工具链到 /usr/
-    sudo tar -xJvf ./download/arm-gnu-toolchain-14.2.rel1-x86_64-aarch64-none-linux-gnu.tar.xz -C /usr/
+    sudo tar -xJvf ./download/arm-gnu-toolchain-12.2.rel1-x86_64-aarch64-none-linux-gnu.tar.xz -C /usr/
 
     # 将工具链路径写入 /etc/profile
-    sudo sh -c 'echo "export PATH=\$PATH:/usr/arm-gnu-toolchain-14.2.rel1-x86_64-aarch64-none-linux-gnu/bin" >> /etc/profile'
+    sudo sh -c 'echo "export PATH=\$PATH:/usr/arm-gnu-toolchain-12.2.rel1-x86_64-aarch64-none-linux-gnu/bin" >> /etc/profile'
 
     # 查看 /etc/profile 的内容
     cat /etc/profile
@@ -90,7 +90,8 @@ extract_kernel() {
         
 # 解压 tar 文件
 extract_uboot() {
-
+    # wget -P ./download https://codeload.github.com/rockchip-linux/u-boot/zip/refs/heads/next-dev
+    # unzip ./download/next-dev 
     wget -P ./download https://ftp.denx.de/pub/u-boot/u-boot-2023.04.tar.bz2
     tar -jvxf ./download/u-boot-2023.04.tar.bz2 -C  ./ 
     update_init_status
@@ -121,11 +122,11 @@ copy_files() {
     
     cp ./tools/rkbin/bin/rk33/rk3399_bl31_v1.36.elf ./u-boot-2023.04/bl31.elf
     cp ./tools/rkbin/bin/rk33/rk3399_bl31_v1.36.elf ./u-boot-2023.04/atf-bl31
-    cp ./tools/mkimage ./u-boot-2023.04/tools
+    cp ./modify/mkimage ./u-boot-2023.04/tools
     cp ./modify/kernel_Makefile ./linux-6.3.1/Makefile
     cp ./modify/kernel.its ./linux-6.3.1/
     cp ./modify/mkimage ./linux-6.3.1/
-    cp ./modify/sw799_uboot_defconfig ./linux-6.3.1/
+    cp ./modify/sw799_linux_defconfig ./linux-6.3.1/arch/arm64/configs
 }
 
 # 配置函数
@@ -163,6 +164,7 @@ config() {
 
 # 编译 U-Boot 函数
 make_uboot() {
+    
     echo "开始编译 U-Boot..."
     cd $PROJERCT_PATH/u-boot-2023.04
     source /etc/profile
@@ -172,12 +174,12 @@ make_uboot() {
     mkimage -n rk3399 -T rksd -d tpl/u-boot-tpl.bin idbloader.img
     cat spl/u-boot-spl.bin >> idbloader.img
     cp  idbloader.img ../out
-    # cp /usr/lib/python3.10/site-packages/elftools ./arch/arm/mach-rockchip/ -r 
+   
     make u-boot.itb
     # ../tools/loaderimage --pack --uboot ./u-boot.bin u-boot.img 0x00200000
     # cp  u-boot.img ../out   
     cp  u-boot.itb ../out
-   
+
     # 在这里添加编译 U-Boot 的命令
 }
 
@@ -185,9 +187,10 @@ make_uboot() {
 make_kernel() {
     
     echo "开始编译内核..."
-    cd $PROJERCT_PATH//linux-6.3.1
+    cd $PROJERCT_PATH/linux-6.3.1
     # 在这里添加编译内核的命令
-    make sw799_uboot_defconfig
+    make sw799_linux_defconfig
+    make menuconfig
     make -j8
     ./mkimage -f kernel.its kernel.itb
     cp kernel.itb  ../out
