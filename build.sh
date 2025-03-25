@@ -7,7 +7,7 @@
 # rkdeveloptool wl 0x8000 boot.itb
 # rkdeveloptool wl 0x40000 ubuntu_ext4.img
 
-# set -e
+set -e
 # 初始化配置文件路径
 INIT_CONFIG_FILE="./init_config.defconfig"
 # 默认值
@@ -115,6 +115,7 @@ update_kernel_status() {
 # 复制文件
 copy_files() {
     cd $PROJERCT_PATH
+    # mkdir -P $PROJERCT_PATH/out
     cp ./modify/make_fit_atf.py ./u-boot-2023.04/arch/arm/mach-rockchip/
     chmod +x ./u-boot-2023.04/arch/arm/mach-rockchip/make_fit_atf.py 
     cp ./modify/uboot_Makefile ./u-boot-2023.04/Makefile
@@ -134,8 +135,9 @@ config() {
 
     echo "Get workable env..."
     sudo apt update
-    sudo apt install u-boot-tools libssl-dev  bison flex -y
+    sudo apt install u-boot-tools libssl-dev  bison flex python3-setuptools python3-pip -y
 
+    pip install pyelftools  
 
     echo "执行配置任务..."
     # 在这里添加配置相关的命令
@@ -187,7 +189,7 @@ make_uboot() {
     make u-boot.itb
     cp  u-boot.itb ../out
     $PROJERCT_PATH/tools/rkbin/tools/loaderimage --pack --uboot ./u-boot.bin u-boot.img 0x00200000
-    cp  u-boot.img ../out   
+    cp  u-boot.img $PROJERCT_PATH/out   
     
      cd $PROJERCT_PATH/tools/rkbin
     ./tools/trust_merger  ./RKTRUST/RK3399TRUST.ini
