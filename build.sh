@@ -7,7 +7,7 @@
 # rkdeveloptool wl 0x8000 boot.itb
 # rkdeveloptool wl 0x40000 ubuntu_ext4.img
 
-set -e
+# set -e
 # 初始化配置文件路径
 INIT_CONFIG_FILE="./init_config.defconfig"
 # 默认值
@@ -115,7 +115,7 @@ update_kernel_status() {
 # 复制文件
 copy_files() {
     cd $PROJERCT_PATH
-    cp ./modify/make_fit_atf.py ./u-boot-2023.04/arch/arm/mach-rockchip/make_fit_atf.py
+    cp ./modify/make_fit_atf.py ./u-boot-2023.04/arch/arm/mach-rockchip/
     chmod +x ./u-boot-2023.04/arch/arm/mach-rockchip/make_fit_atf.py 
     cp ./modify/uboot_Makefile ./u-boot-2023.04/Makefile
     cp ./modify/sw799_uboot_defconfig ./u-boot-2023.04/configs/
@@ -172,20 +172,28 @@ config() {
 make_uboot() {
     
     echo "开始编译 U-Boot..."
+   
+
     cd $PROJERCT_PATH/u-boot-2023.04
     source /etc/profile
     make sw799_uboot_defconfig
     make -j4
     # cp ./tools/mkimage ./u-boot-2023.04/tools
-    mkimage -n rk3399 -T rksd -d tpl/u-boot-tpl.bin idbloader.img
-    cat spl/u-boot-spl.bin >> idbloader.img
-    cp  idbloader.img ../out
+
+    mkimage -n rk3399 -T rksd -d tpl/u-boot-tpl.bin idbloader_spl.img
+    cat spl/u-boot-spl.bin >> idbloader_spl.img
+    cp  idbloader_spl.img ../out
    
     make u-boot.itb
-    # ../tools/loaderimage --pack --uboot ./u-boot.bin u-boot.img 0x00200000
-    # cp  u-boot.img ../out   
     cp  u-boot.itb ../out
-
+    $PROJERCT_PATH/tools/rkbin/tools/loaderimage --pack --uboot ./u-boot.bin u-boot.img 0x00200000
+    cp  u-boot.img ../out   
+    
+     cd $PROJERCT_PATH/tools/rkbin
+    ./tools/trust_merger  ./RKTRUST/RK3399TRUST.ini
+    cp trust.img  $PROJERCT_PATH/out
+    tools/mkimage -n rk3399 -T rksd  -d bin/rk33/rk3399_ddr_800MHz_v1.30.bin idbloader.img
+    cp  idbloader.img $PROJERCT_PATH/out
     # 在这里添加编译 U-Boot 的命令
 }
 
@@ -196,7 +204,8 @@ make_kernel() {
     cd $PROJERCT_PATH/linux-6.3.1
     # 在这里添加编译内核的命令
     make sw799_linux_defconfig
-    make menuconfig
+    # cp ./arch/arm64/configs/sw799_linux_defconfig .config
+    # make menuconfig
     make -j8
     ./mkimage -f kernel.its kernel.itb
     cp kernel.itb  ../out
@@ -228,8 +237,11 @@ clean_all() {
 to_git() {
     echo "Get env to git..."
     cd $PROJERCT_PATH
-    sudo rm -r  u-boot-2023.04
     sudo rm -r ./download/* 
+    sudo rm init_config.defconfig
+    sudo rm -r  linux-6.3.1
+    sudo rm -r  u-boot-2023.04
+    
    
 }
 
